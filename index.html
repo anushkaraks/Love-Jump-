@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Love Jump💕</title>
+<style>
+  body {
+    margin: 0;
+    background: #1b0b2a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    flex-direction: column;
+    touch-action: manipulation;
+    color: #ffb6c1;
+  }
+  canvas {
+    background: #2b0f44;
+    border: 3px solid #ff5fa2;
+    border-radius: 12px;
+    display: none;
+  }
+  #startBox {
+    background: #2b0f44;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid #ff5fa2;
+    width: 450px;
+  }
+  #instructions {
+    font-size: 16px;
+    margin-top: 15px;
+    color: #ff79ac;
+  }
+  #popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2b0f44;
+    border: 2px solid #ff5fa2;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    display: none;
+  }
+  .restart-btn {
+    background: #ff5fa2;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .restart-btn:hover {
+    background: #e04d94;
+    transform: scale(1.1);
+  }
+  button {
+    background: #ff5fa2;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover { background: #e04d94; }
+  /* Mute button */
+  #muteBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff5fa2;
+    border-radius: 50%;
+    padding: 10px;
+    border: none;
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="startBox">
+  <h1 id="gameTitle">Love Jump 1.0 - Kirby Edition</h1>
+  <p id="gameDesc">Help Kirby collect hearts and avoid thorns. Jump to survive and score points!</p>
+  <div id="instructions">
+    Press SPACE or TAP to jump. Collect hearts (+10) and avoid thorns (-1 heart). Reach 500 points to win! 
+  </div>
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<canvas id="game" width="800" height="400"></canvas>
+
+<!-- POPUP -->
+<div id="popup">
+  <h2 id="popupTitle"></h2>
+  <p id="popupMsg"></p>
+  <button class="restart-btn" onclick="restartGame()">Restart Game</button>
+</div>
+
+<!-- AUDIO FILES -->
+<audio id="jumpSound" src="jump.mp3"></audio>
+<audio id="collectSound" src="collect.mp3"></audio>
+<audio id="hitSound" src="hit.mp3"></audio>
+<audio id="winSound" src="win.mp3"></audio>
+<audio id="loseSound" src="lose.mp3"></audio>
+<audio id="bgMusic" src="background.mp3" loop autoplay muted></audio>
+
+<!-- Mute Button -->
+<button id="muteBtn" onclick="toggleMusic()">🔈</button>
+
+<script>
+/* Setup */
+const canvas = document.getElementById("game");
+const c = canvas.getContext("2d");
+const startBox = document.getElementById("startBox");
+const popup = document.getElementById("popup");
+const popupTitle = document.getElementById("popupTitle");
+const popupMsg = document.getElementById("popupMsg");
+const W = canvas.width, H = canvas.height;
+const groundY = H - 40;
+
+// Change text
+document.getElementById("gameTitle").innerText = "Love Jump 1.0 - Kirby Edition";
+document.getElementById("gameDesc").innerText = "Help Kirby collect hearts and avoid thorns.\nJump to survive and score points!\nAll the best!!! ❤️";
+
+// Images
+const playerImg = new Image(); playerImg.src = "kirby.png";
+const heartImg  = new Image(); heartImg.src  = "heart.png";
+const thornImg  = new Image(); thornImg.src  = "thorn.png";
+
+// Player data
+let player = {x: 90, y: groundY-90, w: 80, h: 80, vy: 0, onGround:true};
+let keys = {};
+let entities = [];
+let score = 0, lives = 3;
+let gameOver = false, win = false;
+let spawnCooldown = 0;
+const WIN_SCORE = 500;
+
+let heartsSpawned = 0, thornsSpawned = 0;
+const TARGET_RATIO = 0.5;
+
+let glitchTimer = 0;
+function triggerGlitch(duration=60){ glitchTimer = duration; }
+
+/* Controls */
+document.addEventListener('keydown', e=>{ keys[e.code] = true; });
+document.addEventListener('keyup', e=>{ keys[e.code] = false; });
+document.addEventListener('touchstart', handleJump);
+
+function handleJump(){
+  if(player.onGround){
+    player.vy = -14;
+    player.onGround = false;
+    document.getElementById("jumpSound").play();
+  }
+}
+
+/* Start Game */
+function startGame(){ 
+  startBox.style.display = "none"; 
+  canvas.style.display = "block"; 
+  let bg = document.getElementById("bgMusic");
+  bg.muted = false; // Unmute background music
+  bg.play();
+  loop(); 
+}
+
+/* Restart */
+function restartGame() {
+  player.x = 90; player.y = groundY-90; player.vy = 0; player.onGround = true;
+  entities = []; score = 0; lives = 5; gameOver = false; win = false;
+  heartsSpawned = 0; thornsSpawned = 0; spawnCooldown = 0; glitchTimer = 0;
+  popup.style.display = "none";
+  loop();
+}
+
+/* Toggle Music */
+function toggleMusic(){
+  let bg = document.getElementById("bgMusic");
+  bg.muted = !bg.muted;
+}
+
+/* Main Loop */
+function loop(){
+  c.clearRect(0,0,W,H);
+  drawGround();
+  updatePlayer();
+  drawPlayer();
+  updateEntities();
+  drawScore();
+
+  if(score>=WIN_SCORE && !gameOver){ win=true; gameOver=true; showPopup(true); }
+  if(!gameOver) requestAnimationFrame(loop);
+  else if(!win) showPopup(false);
+}
+
+/* Drawing */
+function drawGround(){ c.fillStyle='#551a61'; c.fillRect(0, groundY, W, H-groundY); }
+
+function drawPlayer(){
+  if(playerImg.complete){
+    if(glitchTimer>0){
+      for(let i=0;i<3;i++){
+        const offsetX=Math.random()*10-5;
+        const offsetY=Math.random()*10-5;
+        c.globalAlpha=0.7;
+        c.filter=`hue-rotate(${Math.random()*360}deg)`;
+        c.drawImage(playerImg, player.x-10+offsetX, player.y-10+offsetY, player.w+20, player.h+20);
+      }
+      c.globalAlpha=1; c.filter='none'; glitchTimer--;
+    } else { c.drawImage(playerImg, player.x-10, player.y-10, player.w+20, player.h+20); }
+  } else { 
+    c.fillStyle='#ff8fb5'; 
+    c.beginPath(); 
+    c.roundRect(player.x, player.y, player.w, player.h, 20); 
+    c.fill(); 
+  }
+}
+
+function drawHeartIcon(x,y){ 
+  if(heartImg.complete) c.drawImage(heartImg, x, y, 40, 40);
+  else { c.fillStyle="#ff5fa2"; c.beginPath(); c.arc(x+20,y+20,20,0,Math.PI*2); c.fill(); } 
+}
+
+function drawHeart(x,y,r){
+  if(heartImg.complete) c.drawImage(heartImg, x-r, y-r, r*2, r*2);
+  else { c.save(); c.translate(x,y); c.fillStyle='#ff5fa2'; c.beginPath();
+        c.moveTo(0,r*0.6); c.bezierCurveTo(r,r*1.6,r*2.2,0,0,-r*0.3);
+        c.bezierCurveTo(-r*2.2,0,-r,r*1.6,0,r*0.6); c.fill(); c.restore(); }
+}
+
+function drawThorn(e){ 
+  if(thornImg.complete) c.drawImage(thornImg, e.x, e.y, e.w, e.h); 
+  else { c.save(); c.translate(e.x,e.y); c.fillStyle='#7a2c6e'; c.beginPath(); c.moveTo(0,e.h); c.lineTo(e.w*0.5,0); c.lineTo(e.w,e.h); c.closePath(); c.fill(); c.restore(); } 
+}
+
+function drawScore(){
+  c.fillStyle='#ff79ac';
+  c.font='24px Arial';
+  c.fillText("Score: " + score, 20, 40);
+  c.fillText("Lives:", 20, 70);
+  for(let i=0;i<lives;i++) drawHeartIcon(100+i*45,40);
+}
+
+/* Popup */
+function showPopup(isWin){
+  popup.style.display = "block";
+  popupTitle.innerText = isWin ? "Congratulations!!!" : "Game Over!!!";
+  popupMsg.innerText = isWin ?
+    "Yayyy you wonnn! Final Score: "+score :
+    "Better luck next time!! Final Score: "+score;
+  if (isWin) document.getElementById("winSound").play();
+  else document.getElementById("loseSound").play();
+}
+
+/* Player Update */
+function updatePlayer(){
+  if(keys["Space"] && player.onGround) handleJump();
+  player.y += player.vy; player.vy += 0.6;
+  if(player.y + player.h >= groundY){ player.y = groundY-player.h; player.vy=0; player.onGround=true; }
+}
+
+/* Entity Update */
+function updateEntities(){
+  spawnCooldown--;
+  if(spawnCooldown<=0){ spawn(); spawnCooldown=80; }
+  entities.forEach(e=>{
+    e.x += e.vx;
+    if(e.kind==='heart') drawHeart(e.x,e.y,e.r);
+    else if(e.kind==='thorn') drawThorn(e);
+
+    if(e.kind==='heart' && checkCollisionCircle(player,e)){ 
+      score+=10; e.remove=true; 
+      document.getElementById("collectSound").play();
+    } 
+    else if(e.kind==='thorn' && checkCollisionRect(player,e)){ 
+      lives--; e.remove=true; triggerGlitch(60); 
+      document.getElementById("hitSound").play();
+      if(lives<=0) gameOver=true; 
+    }
+  });
+  entities = entities.filter(e=>!e.remove && e.x>-60);
+}
+
+/* Spawn Items */
+function spawn(){
+  const t=Math.random(); const speed=-5-Math.random()*1.8;
+  const total=heartsSpawned+thornsSpawned;
+  let pickHeart;
+  if(total<4) pickHeart=t<0.5;
+  else { 
+    const currentHeartRatio=heartsSpawned/total;
+    if(currentHeartRatio>TARGET_RATIO) pickHeart=false;
+    else if(currentHeartRatio<TARGET_RATIO) pickHeart=true;
+    else pickHeart=t<0.5; 
+  }
+  if(pickHeart){ entities.push({kind:'heart',x:W+50,y:groundY-120,r:36,vx:speed}); heartsSpawned++; }
+  else{ const size=60; entities.push({kind:'thorn',x:W+60,y:groundY-size+8,w:size,h:size,vx:speed}); thornsSpawned++; }
+}
+
+/* Collision Checks */
+function checkCollisionCircle(p,e){ 
+  let dx=p.x+p.w/2-e.x; let dy=p.y+p.h/2-e.y; 
+  let dist=Math.sqrt(dx*dx+dy*dy); 
+  return dist<p.w/2+e.r; 
+}
+function checkCollisionRect(p,e){ 
+  return p.x<e.x+e.w && p.x+p.w>e.x && p.y<e.y+e.h && p.y+p.h>e.y; 
+}
+</script>
+</body>
+</html>
