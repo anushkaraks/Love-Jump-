@@ -181,7 +181,7 @@ function startGame(){
 /* Restart */
 function restartGame() {
   player.x = 90; player.y = groundY-90; player.vy = 0; player.onGround = true;
-  entities = []; score = 0; lives = 5; gameOver = false; win = false;
+  entities = []; score = 0; lives = 3; gameOver = false; win = false;
   heartsSpawned = 0; thornsSpawned = 0; spawnCooldown = 0; glitchTimer = 0;
   popup.style.display = "none";
   loop();
@@ -323,4 +323,5 @@ function checkCollisionRect(p,e){
 </script>
 </body>
 </html>
+
 
