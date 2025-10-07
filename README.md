@@ -36,4 +36,4 @@ Try to beat your high score!
 # 🌐 Play Online
 
 You can also play the game online:
-Play Love Jump
+[Play Love Jump](https://anushkaraks.github.io/Love-Jump-/)
