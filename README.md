@@ -2,7 +2,7 @@
 
 Love Jump is a fun and interactive web-based game built using HTML, CSS, and JavaScript. Players control a character to jump over obstacles and collect hearts, testing their reflexes and timing.
 
-# 🎮 Features
+# Features
 
 Smooth jump mechanics using keyboard controls
 
@@ -14,13 +14,13 @@ Score tracking system
 
 Colorful and responsive UI
 
-# 🛠 Tech Stack
+# Tech Stack
 
 Languages: HTML, CSS, JavaScript
 
 Browser: Any modern web browser
 
-# 🚀 How to Play
+# How to Play
 
 Open index.html in your browser.
 
@@ -33,7 +33,7 @@ Avoid obstacles to continue playing.
 Try to beat your high score!
 
 
-# 🌐 Play Online
+# Play Online
 
 You can also play the game online:
 [Play Love Jump](https://anushkaraks.github.io/Love-Jump-/)
