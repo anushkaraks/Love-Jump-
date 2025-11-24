@@ -73,7 +73,6 @@
     font-size: 16px;
   }
   button:hover { background: #e04d94; }
-  /* Mute button */
   #muteBtn {
     position: absolute;
     top: 20px;
@@ -90,7 +89,6 @@
 </head>
 <body>
 
-<!-- START SCREEN -->
 <div id="startBox">
   <h1 id="gameTitle">Love Jump 1.0 - Kirby Edition</h1>
   <p id="gameDesc">Help Kirby collect hearts and avoid thorns. Jump to survive and score points!</p>
@@ -102,14 +100,12 @@
 
 <canvas id="game" width="800" height="400"></canvas>
 
-<!-- POPUP -->
 <div id="popup">
   <h2 id="popupTitle"></h2>
   <p id="popupMsg"></p>
   <button class="restart-btn" onclick="restartGame()">Restart Game</button>
 </div>
 
-<!-- AUDIO FILES -->
 <audio id="jumpSound" src="jump.mp3"></audio>
 <audio id="collectSound" src="collect.mp3"></audio>
 <audio id="hitSound" src="hit.mp3"></audio>
@@ -117,11 +113,10 @@
 <audio id="loseSound" src="lose.mp3"></audio>
 <audio id="bgMusic" src="background.mp3" loop autoplay muted></audio>
 
-<!-- Mute Button -->
 <button id="muteBtn" onclick="toggleMusic()">🔈</button>
 
 <script>
-/* Setup */
+
 const canvas = document.getElementById("game");
 const c = canvas.getContext("2d");
 const startBox = document.getElementById("startBox");
@@ -131,16 +126,13 @@ const popupMsg = document.getElementById("popupMsg");
 const W = canvas.width, H = canvas.height;
 const groundY = H - 40;
 
-// Change text
 document.getElementById("gameTitle").innerText = "Love Jump 1.0 - Kirby Edition";
 document.getElementById("gameDesc").innerText = "Help Kirby collect hearts and avoid thorns.\nJump to survive and score points!\nAll the best!!! ❤️";
 
-// Images
 const playerImg = new Image(); playerImg.src = "kirby.png";
 const heartImg  = new Image(); heartImg.src  = "heart.png";
 const thornImg  = new Image(); thornImg.src  = "thorn.png";
 
-// Player data
 let player = {x: 90, y: groundY-90, w: 80, h: 80, vy: 0, onGround:true};
 let keys = {};
 let entities = [];
@@ -155,7 +147,6 @@ const TARGET_RATIO = 0.5;
 let glitchTimer = 0;
 function triggerGlitch(duration=60){ glitchTimer = duration; }
 
-/* Controls */
 document.addEventListener('keydown', e=>{ keys[e.code] = true; });
 document.addEventListener('keyup', e=>{ keys[e.code] = false; });
 document.addEventListener('touchstart', handleJump);
@@ -168,17 +159,15 @@ function handleJump(){
   }
 }
 
-/* Start Game */
 function startGame(){ 
   startBox.style.display = "none"; 
   canvas.style.display = "block"; 
   let bg = document.getElementById("bgMusic");
-  bg.muted = false; // Unmute background music
+  bg.muted = false; 
   bg.play();
   loop(); 
 }
 
-/* Restart */
 function restartGame() {
   player.x = 90; player.y = groundY-90; player.vy = 0; player.onGround = true;
   entities = []; score = 0; lives = 3; gameOver = false; win = false;
@@ -187,13 +176,11 @@ function restartGame() {
   loop();
 }
 
-/* Toggle Music */
 function toggleMusic(){
   let bg = document.getElementById("bgMusic");
   bg.muted = !bg.muted;
 }
 
-/* Main Loop */
 function loop(){
   c.clearRect(0,0,W,H);
   drawGround();
@@ -207,7 +194,6 @@ function loop(){
   else if(!win) showPopup(false);
 }
 
-/* Drawing */
 function drawGround(){ c.fillStyle='#551a61'; c.fillRect(0, groundY, W, H-groundY); }
 
 function drawPlayer(){
@@ -255,7 +241,6 @@ function drawScore(){
   for(let i=0;i<lives;i++) drawHeartIcon(100+i*45,40);
 }
 
-/* Popup */
 function showPopup(isWin){
   popup.style.display = "block";
   popupTitle.innerText = isWin ? "Congratulations!!!" : "Game Over!!!";
@@ -266,14 +251,12 @@ function showPopup(isWin){
   else document.getElementById("loseSound").play();
 }
 
-/* Player Update */
 function updatePlayer(){
   if(keys["Space"] && player.onGround) handleJump();
   player.y += player.vy; player.vy += 0.6;
   if(player.y + player.h >= groundY){ player.y = groundY-player.h; player.vy=0; player.onGround=true; }
 }
 
-/* Entity Update */
 function updateEntities(){
   spawnCooldown--;
   if(spawnCooldown<=0){ spawn(); spawnCooldown=80; }
@@ -295,7 +278,6 @@ function updateEntities(){
   entities = entities.filter(e=>!e.remove && e.x>-60);
 }
 
-/* Spawn Items */
 function spawn(){
   const t=Math.random(); const speed=-5-Math.random()*1.8;
   const total=heartsSpawned+thornsSpawned;
@@ -311,7 +293,6 @@ function spawn(){
   else{ const size=60; entities.push({kind:'thorn',x:W+60,y:groundY-size+8,w:size,h:size,vx:speed}); thornsSpawned++; }
 }
 
-/* Collision Checks */
 function checkCollisionCircle(p,e){ 
   let dx=p.x+p.w/2-e.x; let dy=p.y+p.h/2-e.y; 
   let dist=Math.sqrt(dx*dx+dy*dy); 
@@ -323,5 +304,6 @@ function checkCollisionRect(p,e){
 </script>
 </body>
 </html>
+
 
 
