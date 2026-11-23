@@ -93,7 +93,7 @@
   <h1 id="gameTitle">Love Jump 1.0 - Kirby Edition</h1>
   <p id="gameDesc">Help Kirby collect hearts and avoid thorns. Jump to survive and score points!</p>
   <div id="instructions">
-    Press SPACE or TAP to jump. Collect hearts (+10) and avoid thorns (-1 heart). Reach 500 points to win! 
+    Press SPACE or TAP to jump. Collect hearts (+10) and avoid thorns (-1 heart). Reach 300 points to win! 
   </div>
   <button onclick="startGame()">Start Game</button>
 </div>
@@ -139,7 +139,7 @@ let entities = [];
 let score = 0, lives = 3;
 let gameOver = false, win = false;
 let spawnCooldown = 0;
-const WIN_SCORE = 500;
+const WIN_SCORE = 300;
 
 let heartsSpawned = 0, thornsSpawned = 0;
 const TARGET_RATIO = 0.5;
